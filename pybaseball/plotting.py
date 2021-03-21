@@ -5,7 +5,7 @@ import warnings
 from matplotlib import axes
 from matplotlib import patches
 import matplotlib.path
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -14,6 +14,13 @@ STADIUM_COORDS = pd.read_csv(Path(CUR_PATH, 'data', 'mlbstadiums.csv'), index_co
 
 # transform over x axis
 STADIUM_COORDS['y'] *= -1
+
+
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+
 
 
 def plot_stadium(team: str, title: Optional[str] = None, width: Optional[int] = None,
@@ -42,7 +49,10 @@ def plot_stadium(team: str, title: Optional[str] = None, width: Optional[int] = 
     if not axis:
         name = list(coords['name'])[0]
 
-        stadium = plt.figure()
+        # stadium = plt.figure()
+        stadium = Figure()
+        canvas = FigureCanvasAgg(stadium)
+
         if width is not None and height is not None:
             stadium.set_size_inches(width / stadium.dpi, height / stadium.dpi)
         else:
@@ -68,11 +78,11 @@ def plot_stadium(team: str, title: Optional[str] = None, width: Optional[int] = 
         if team == 'generic':
             _title = 'Generic Stadium'
 
-        plt.title(_title)
-    else:
-        plt.title(title)
+        # plt.title(_title)
+    # else:
+    #     # plt.title(title)
 
-    return axis
+    return axis, canvas
 
 
 def spraychart(data: pd.DataFrame, team_stadium: str, title: str = '', tooltips: Optional[List['str']] = None,  # pylint: disable=too-many-arguments
@@ -107,7 +117,7 @@ def spraychart(data: pd.DataFrame, team_stadium: str, title: str = '', tooltips:
     """
 
     # pull stadium plot to overlay hits on
-    base = plot_stadium(team_stadium, title, width-50, height)
+    base, canvas = plot_stadium(team_stadium, title, width-50, height)
 
     # only plot pitches where something happened
     sub_data = data.copy().reset_index(drop=True)
@@ -140,13 +150,15 @@ def spraychart(data: pd.DataFrame, team_stadium: str, title: str = '', tooltips:
             category=DeprecationWarning
         )
 
-    plt.legend(handles=scatters, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
+    # plt.legend(handles=scatters, title=legend_title, bbox_to_anchor=(1.05, 1), loc='upper left')
 
-    plt.draw()
+    # plt.draw()
 
-    plt.show()
+    # plt.show()
 
-    return base
+
+    return canvas
+    # return base
 
 
 def plot_bb_profile(df: pd.DataFrame, parameter: Optional[str] = "launch_angle") -> None:
@@ -164,5 +176,5 @@ def plot_bb_profile(df: pd.DataFrame, parameter: Optional[str] = "launch_angle")
     for bb_type in bb_types:
         df_skimmed = df[df.bb_type == bb_type]
         bins = np.arange(df_skimmed[parameter].min(), df_skimmed[parameter].max(), 2)
-        plt.hist(df_skimmed[parameter], bins=bins, alpha=0.5, label=bb_type.replace("_", " ").capitalize())
-        plt.tick_params(labelsize=12)
+        # plt.hist(df_skimmed[parameter], bins=bins, alpha=0.5, label=bb_type.replace("_", " ").capitalize())
+        # plt.tick_params(labelsize=12)
