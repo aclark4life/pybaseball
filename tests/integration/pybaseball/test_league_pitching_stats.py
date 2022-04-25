@@ -1,6 +1,6 @@
 import pytest
 
-from pybaseball import league_pitching_stats
+from pybaseball import league_pitching_stats, pitching_stats_range
 from pybaseball.utils import most_recent_season
 
 def test_get_soup_none_none() -> None:
@@ -19,7 +19,7 @@ def test_pitching_stats_bref() -> None:
     assert result is not None
     assert not result.empty
 
-    assert len(result.columns) == 40
+    assert len(result.columns) == 41
     assert(len(result)) == 831
 
 
@@ -50,3 +50,8 @@ def test_bwar_pitch_return_all() -> None:
 def test_pitching_stats_bref_future() -> None:
     with pytest.raises(IndexError):
         league_pitching_stats.pitching_stats_bref(most_recent_season() + 1)
+
+
+def test_pitching_stats_range_single_date():
+    stats = pitching_stats_range('2019-05-01',)
+    assert not stats.empty

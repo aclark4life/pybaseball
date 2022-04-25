@@ -16,19 +16,25 @@ def get_soup(start_dt, end_dt):
         return None
     url = "http://www.baseball-reference.com/leagues/daily.cgi?user_team=&bust_cache=&type=p&lastndays=7&dates=fromandto&fromandto={}.{}&level=mlb&franch=&stat=&stat_value=0".format(start_dt, end_dt)
     s = requests.get(url).content
-    return BeautifulSoup(s, "lxml")
+    # a workaround to avoid beautiful soup applying the wrong encoding
+    s = str(s).encode()
+    return BeautifulSoup(s, features="lxml")
 
 
 def get_table(soup):
     table = soup.find_all('table')[0]
     data = []
     headings = [th.get_text() for th in table.find("tr").find_all("th")][1:]
+    headings.append("mlbID")
     data.append(headings)
     table_body = table.find('tbody')
     rows = table_body.find_all('tr')
     for row in rows:
         cols = row.find_all('td')
+        row_anchor = row.find("a")
+        mlbid = row_anchor["href"].split("mlb_ID=")[-1] if row_anchor else pd.NA  # ID str or nan
         cols = [ele.text.strip() for ele in cols]
+        cols.append(mlbid)
         data.append([ele for ele in cols])
     data = pd.DataFrame(data)
     data = data.rename(columns=data.iloc[0])
@@ -50,7 +56,7 @@ def pitching_stats_range(start_dt=None, end_dt=None):
     if end_dt_date.year < 2008:
         raise ValueError("Year must be 2008 or later")
     # retrieve html from baseball reference
-    soup = get_soup(start_dt, end_dt)
+    soup = get_soup(start_dt_date, end_dt_date)
     table = get_table(soup)
     table = table.dropna(how='all') # drop if all columns are NA
     #fix some strange formatting for percentage columns

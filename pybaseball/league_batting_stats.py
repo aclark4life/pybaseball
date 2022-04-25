@@ -17,19 +17,25 @@ def get_soup(start_dt: date, end_dt: date) -> BeautifulSoup:
     #    return None
     url = "http://www.baseball-reference.com/leagues/daily.cgi?user_team=&bust_cache=&type=b&lastndays=7&dates=fromandto&fromandto={}.{}&level=mlb&franch=&stat=&stat_value=0".format(start_dt, end_dt)
     s = requests.get(url).content
-    return BeautifulSoup(s, "lxml")
+    # a workaround to avoid beautiful soup applying the wrong encoding
+    s = str(s).encode()
+    return BeautifulSoup(s, features="lxml")
 
 
 def get_table(soup: BeautifulSoup) -> pd.DataFrame:
     table = soup.find_all('table')[0]
     data = []
     headings = [th.get_text() for th in table.find("tr").find_all("th")][1:]
+    headings.append("mlbID")
     data.append(headings)
     table_body = table.find('tbody')
     rows = table_body.find_all('tr')
     for row in rows:
         cols = row.find_all('td')
+        row_anchor = row.find("a")
+        mlbid = row_anchor["href"].split("mlb_ID=")[-1] if row_anchor else pd.NA  # ID str or nan
         cols = [ele.text.strip() for ele in cols]
+        cols.append(mlbid)
         data.append([ele for ele in cols])
     df = pd.DataFrame(data)
     df = df.rename(columns=df.iloc[0])
